@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Image Destroy Tool</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <!-- ── Header ── -->
+  <header class="site-header">
+    <div class="badge" style="color: var(--accent2); border-color: var(--accent2);">⚠ Steganography Tool</div>
+    <h1>Image <span style="color:var(--accent2)">Destroy</span> Tool</h1>
+    <p class="subtitle">Inject / remove a key inside Base64 image data · Educational use only</p>
+  </header>
+
+  <!-- ── Main Card ── -->
+  <main class="card">
+
+    <!-- File Upload -->
+    <div class="field">
+      <label>Select File</label>
+      <div class="file-drop" id="fileDrop">
+        <!-- รองรับทั้ง รูป และ TXT -->
+        <input type="file" id="mainFile" accept=".png,.jpg,.jpeg,.txt" />
+        <span class="drop-icon">📁</span>
+        <div class="drop-label" id="dropLabel">
+          <span>Click to choose</span> file<br>
+          <small>PNG / JPG / JPEG / TXT</small>
+        </div>
+      </div>
+    </div>
+
+    <!-- Key Field -->
+    <div class="field">
+      <label for="destroyKey">Key (min. 4 characters)</label>
+      <input type="text" id="destroyKey" placeholder="Enter key to inject/detect..." autocomplete="off" />
+    </div>
+
+    <!-- Validation Status -->
+    <div class="msg" id="validationMsg"></div>
+
+    <!-- Details after destroy -->
+    <div class="info-box" id="destroyInfo" style="display:none"></div>
+
+    <!-- Buttons -->
+    <div class="btn-group">
+      <button class="btn btn-danger" id="btnDestroy" disabled>💥 Destroy Image</button>
+      <button class="btn btn-success" id="btnRecover">♻ Recover Image</button>
+    </div>
+
+  </main>
+
+  <!-- Nav back -->
+  <a href="index.html" class="nav-link">← Back to Login Page</a>
+
+  <script type="module" src="destroy.js"></script>
+</body>
+</html>

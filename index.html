@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Image Password Login Test</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <!-- ── Header ── -->
+  <header class="site-header">
+    <div class="badge">⚠ Security Research Lab</div>
+    <h1>Image <span>Password</span> Login Test</h1>
+    <p class="subtitle">Base64 exact-match authentication · For educational purposes only</p>
+  </header>
+
+  <!-- ── Main Card ── -->
+  <main class="card">
+
+    <!-- ID Field -->
+    <div class="field">
+      <label for="userId">User ID</label>
+      <input type="text" id="userId" placeholder="Enter your ID..." autocomplete="off" />
+    </div>
+
+    <!-- Image Upload -->
+    <div class="field">
+      <label>Image Password</label>
+      <div class="file-drop" id="fileDrop">
+        <input type="file" id="imageFile" accept=".png,.jpg,.jpeg" />
+        <span class="drop-icon">🖼</span>
+        <div class="drop-label">
+          <span>Click to choose</span> or drag image here<br>
+          <small>PNG / JPG / JPEG</small>
+        </div>
+      </div>
+    </div>
+
+    <!-- Status Message -->
+    <div class="msg" id="statusMsg"></div>
+
+    <!-- Buttons -->
+    <div class="btn-group">
+      <button class="btn btn-primary" id="btnLogin">🔐 Login</button>
+      <button class="btn btn-secondary" id="btnBind">🔗 Bind Image Password</button>
+      <hr class="divider" />
+      <button class="btn btn-ghost" id="btnGoDestroy">🗡 Go To Image Destroy Page</button>
+    </div>
+
+  </main>
+
+  <!-- ── Secret7 Modal ── -->
+  <div class="modal-overlay" id="secretModal">
+    <div class="modal">
+      <h2>✅ Registration Complete</h2>
+      <p>Your Secret7 code is:</p>
+      <div class="secret-box" id="secret7Display">—</div>
+      <p>⚠️ Please write this down somewhere safe.<br>It will <strong>not</strong> be shown again.</p>
+      <button class="btn btn-primary" id="btnCloseModal">I've saved it</button>
+    </div>
+  </div>
+
+  <!-- Load app logic as ES Module -->
+  <script type="module" src="app.js"></script>
+</body>
+</html>
