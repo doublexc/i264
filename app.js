@@ -136,11 +136,22 @@ btnBind.addEventListener("click", async () => {
     const secret7 = generateSecret7();
 
     // 4. บันทึกลง Firestore
-    await setDoc(docRef, {
-      id: userId,
-      imageBase64: imageBase64,   // เก็บ Base64 จริง (ทดลองด้าน security)
-      secret7: secret7
-    });
+   // เพิ่มฟังก์ชัน hash ก่อน
+async function hashImage(base64String) {
+  const encoder = new TextEncoder();
+  const data = encoder.encode(base64String);
+  const hashBuffer = await crypto.subtle.digest("SHA-256", data);
+  const hashArray = Array.from(new Uint8Array(hashBuffer));
+  return hashArray.map(b => b.toString(16).padStart(2, "0")).join("");
+}
+
+// แล้วตอน Bind แก้เป็น
+const imageHash = await hashImage(imageBase64);
+await setDoc(docRef, {
+  id: userId,
+  imageHash: imageHash,  // ← เก็บแค่ hash
+  secret7: secret7
+});
 
     // 5. แสดง Secret7 ใน Modal
     secret7Display.textContent = secret7;
@@ -188,9 +199,10 @@ btnLogin.addEventListener("click", async () => {
     }
 
     // 3. เปรียบเทียบ Base64 ต้องตรงกัน 100% ทุกตัวอักษร
-    const storedBase64 = docSnap.data().imageBase64;
+   const uploadedHash = await hashImage(uploadedBase64);
+  const storedHash = docSnap.data().imageHash;
 
-    if (storedBase64 === uploadedBase64) {
+    if (storedHash === uploadedHash) {
       showMsg("✅ Login Successful! Welcome, " + userId, "success");
     } else {
       showMsg("❌ Login Failed — Image does not match.", "error");
