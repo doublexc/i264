@@ -22,6 +22,11 @@ const app = initializeApp(firebaseConfig);
 
 // สร้าง Firestore instance
 const db = getFirestore(app);
+import { initializeAppCheck, ReCaptchaV3Provider } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app-check.js";
 
+const appCheck = initializeAppCheck(app, {
+  provider: new ReCaptchaV3Provider("SITE_KEY_ตรงนี้"),
+  isTokenAutoRefreshEnabled: true
+});
 // Export db ออกไปใช้งานในไฟล์อื่น
 export { db };
