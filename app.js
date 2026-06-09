@@ -4,50 +4,34 @@
 
 import { db } from "./firebase-config.js";
 import {
-  collection,
   doc,
   getDoc,
-  setDoc,
-  query,
-  where,
-  getDocs
+  setDoc
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 // ── DOM References ──────────────────────────────────────────
-const userIdInput   = document.getElementById("userId");
+const userIdInput    = document.getElementById("userId");
 const imageFileInput = document.getElementById("imageFile");
-const fileDrop      = document.getElementById("fileDrop");
-const statusMsg     = document.getElementById("statusMsg");
-const btnLogin      = document.getElementById("btnLogin");
-const btnBind       = document.getElementById("btnBind");
-const btnGoDestroy  = document.getElementById("btnGoDestroy");
-const secretModal   = document.getElementById("secretModal");
+const fileDrop       = document.getElementById("fileDrop");
+const statusMsg      = document.getElementById("statusMsg");
+const btnLogin       = document.getElementById("btnLogin");
+const btnBind        = document.getElementById("btnBind");
+const btnGoDestroy   = document.getElementById("btnGoDestroy");
+const secretModal    = document.getElementById("secretModal");
 const secret7Display = document.getElementById("secret7Display");
-const btnCloseModal = document.getElementById("btnCloseModal");
+const btnCloseModal  = document.getElementById("btnCloseModal");
 
 // ── Helpers ──────────────────────────────────────────────────
 
-/**
- * แสดงข้อความสถานะใต้ form
- * @param {string} text  - ข้อความ
- * @param {'error'|'success'|'info'} type - ประเภท
- */
 function showMsg(text, type = "info") {
   statusMsg.textContent = text;
   statusMsg.className = `msg msg-${type} show`;
 }
 
-/** ซ่อนข้อความสถานะ */
 function hideMsg() {
   statusMsg.className = "msg";
 }
 
-/**
- * อ่านไฟล์รูปภาพแล้วแปลงเป็น Base64 string เต็ม
- * รวม header เช่น "data:image/png;base64,iVBOR..."
- * @param {File} file
- * @returns {Promise<string>}
- */
 function readFileAsBase64(file) {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
@@ -57,11 +41,15 @@ function readFileAsBase64(file) {
   });
 }
 
-/**
- * สร้าง Secret7 แบบสุ่ม
- * ใช้ชุดอักขระ A-Z a-z 0-9 รวม 62 ตัว
- * @returns {string} ความยาว 7 ตัวอักษร
- */
+// ── hashImage อยู่ข้างนอก ใช้ได้ทั้ง Bind และ Login ──────────
+async function hashImage(base64String) {
+  const encoder = new TextEncoder();
+  const data = encoder.encode(base64String);
+  const hashBuffer = await crypto.subtle.digest("SHA-256", data);
+  const hashArray = Array.from(new Uint8Array(hashBuffer));
+  return hashArray.map(b => b.toString(16).padStart(2, "0")).join("");
+}
+
 function generateSecret7() {
   const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
   let result = "";
@@ -71,10 +59,6 @@ function generateSecret7() {
   return result;
 }
 
-/**
- * ตรวจสอบ Input พื้นฐาน (ID และไฟล์รูป)
- * @returns {boolean}
- */
 function validateInputs() {
   if (!userIdInput.value.trim()) {
     showMsg("⚠ Please enter your User ID.", "error");
@@ -87,10 +71,10 @@ function validateInputs() {
   return true;
 }
 
-// ── File Drop UI Update ──────────────────────────────────────
+// ── Events ───────────────────────────────────────────────────
+
 imageFileInput.addEventListener("change", () => {
   if (imageFileInput.files[0]) {
-    // แสดงชื่อไฟล์ที่เลือก
     fileDrop.classList.add("has-file");
     fileDrop.querySelector(".drop-label").textContent =
       `✓ ${imageFileInput.files[0].name}`;
@@ -98,17 +82,15 @@ imageFileInput.addEventListener("change", () => {
   }
 });
 
-// ── Button: Go To Destroy Page ───────────────────────────────
 btnGoDestroy.addEventListener("click", () => {
   window.location.href = "destroy.html";
 });
 
-// ── Button: Close Modal ──────────────────────────────────────
 btnCloseModal.addEventListener("click", () => {
   secretModal.classList.remove("show");
 });
 
-// ── Button: Bind Image Password ─────────────────────────────
+// ── Bind ─────────────────────────────────────────────────────
 btnBind.addEventListener("click", async () => {
   if (!validateInputs()) return;
 
@@ -120,10 +102,9 @@ btnBind.addEventListener("click", async () => {
   hideMsg();
 
   try {
-    // 1. แปลงไฟล์เป็น Base64 เต็ม
     const imageBase64 = await readFileAsBase64(file);
+    const imageHash   = await hashImage(imageBase64);
 
-    // 2. ตรวจสอบว่า ID ซ้ำหรือไม่
     const docRef  = doc(db, "users", userId);
     const docSnap = await getDoc(docRef);
 
@@ -132,32 +113,17 @@ btnBind.addEventListener("click", async () => {
       return;
     }
 
-    // 3. สร้าง Secret7
     const secret7 = generateSecret7();
 
-    // 4. บันทึกลง Firestore
-   // เพิ่มฟังก์ชัน hash ก่อน
-async function hashImage(base64String) {
-  const encoder = new TextEncoder();
-  const data = encoder.encode(base64String);
-  const hashBuffer = await crypto.subtle.digest("SHA-256", data);
-  const hashArray = Array.from(new Uint8Array(hashBuffer));
-  return hashArray.map(b => b.toString(16).padStart(2, "0")).join("");
-}
+    await setDoc(docRef, {
+      id: userId,
+      imageHash: imageHash,
+      secret7: secret7
+    });
 
-// แล้วตอน Bind แก้เป็น
-const imageHash = await hashImage(imageBase64);
-await setDoc(docRef, {
-  id: userId,
-  imageHash: imageHash,  // ← เก็บแค่ hash
-  secret7: secret7
-});
-
-    // 5. แสดง Secret7 ใน Modal
     secret7Display.textContent = secret7;
     secretModal.classList.add("show");
 
-    // Reset form
     userIdInput.value = "";
     imageFileInput.value = "";
     fileDrop.classList.remove("has-file");
@@ -173,7 +139,7 @@ await setDoc(docRef, {
   }
 });
 
-// ── Button: Login ────────────────────────────────────────────
+// ── Login ────────────────────────────────────────────────────
 btnLogin.addEventListener("click", async () => {
   if (!validateInputs()) return;
 
@@ -185,22 +151,18 @@ btnLogin.addEventListener("click", async () => {
   hideMsg();
 
   try {
-    // 1. อ่านรูปภาพและแปลงเป็น Base64
     const uploadedBase64 = await readFileAsBase64(file);
+    const uploadedHash   = await hashImage(uploadedBase64);
 
-    // 2. ค้นหา ID ใน Firestore
     const docRef  = doc(db, "users", userId);
     const docSnap = await getDoc(docRef);
 
     if (!docSnap.exists()) {
-      // ไม่พบ ID
       showMsg("❌ Login Failed — ID not found.", "error");
       return;
     }
 
-    // 3. เปรียบเทียบ Base64 ต้องตรงกัน 100% ทุกตัวอักษร
-   const uploadedHash = await hashImage(uploadedBase64);
-  const storedHash = docSnap.data().imageHash;
+    const storedHash = docSnap.data().imageHash;
 
     if (storedHash === uploadedHash) {
       showMsg("✅ Login Successful! Welcome, " + userId, "success");
