@@ -1,10 +1,6 @@
-// ============================================================
-// firebase-config.js
-// ============================================================
-
-// import ต้องอยู่บนสุดเสมอ
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getFirestore } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js"
+import { getFirestore } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { initializeAppCheck, ReCaptchaV3Provider } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app-check.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyAYEBCTPrlybkEIXMYlMWWpPfZ6FGQ4W0s",
@@ -18,5 +14,9 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
+initializeAppCheck(app, {
+  provider: new ReCaptchaV3Provider("6LeschItAAAAA...PHBM"),  // ← Site Key
+  isTokenAutoRefreshEnabled: true
+});
 
 export { db };
